@@ -117,11 +117,17 @@ def write_fic_to_csv(fic_id, only_first_chap, writer, errorwriter, header_info='
 		tags = get_tags(meta)
 		stats = get_stats(meta)
 		title = unidecode(soup.find("h2", class_="title heading").string).strip()
+		author = soup.find("h3", class_="byline heading").get_text().strip()
+		#get the summary
+		summary = ""
+		if len(soup.find_all("blockquote", class_="userstuff")) > 0:
+			summary = " ".join([item for item in soup.find_all("blockquote", class_="userstuff")[0].stripped_strings])
+	
 		#get the fic itself
 		content = soup.find("div", id= "chapters")
 		chapters = content.select('p')
 		chaptertext = '\n\n'.join([unidecode(chapter.text) for chapter in chapters])
-		row = [fic_id] + [title] + list(map(lambda x: ', '.join(x), tags)) + stats + [chaptertext]
+		row = [fic_id] + [title] + [author] + list(map(lambda x: ', '.join(x), tags)) + stats + [summary] + [chaptertext]
 		try:
 			writer.writerow(row)
 		except:
@@ -182,7 +188,7 @@ def main():
 			#does the csv already exist? if not, let's write a header row.
 			if os.stat(csv_out).st_size == 0:
 				print('Writing a header row for the csv.')
-				header = ['work_id', 'title', 'rating', 'category', 'fandom', 'relationship', 'character', 'additional tags', 'language', 'published', 'status', 'status date', 'words', 'chapters', 'comments', 'kudos', 'bookmarks', 'hits', 'body']
+				header = ['work_id', 'title', 'author', 'rating', 'category', 'fandom', 'relationship', 'character', 'additional tags', 'language', 'published', 'status', 'status date', 'words', 'chapters', 'comments', 'kudos', 'bookmarks', 'hits', 'summary', 'body']
 				writer.writerow(header)
 			if is_csv:
 				csv_fname = fic_ids[0]
